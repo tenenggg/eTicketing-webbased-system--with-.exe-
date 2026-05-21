@@ -3,8 +3,9 @@
 
 # Build artifacts
 Backend/*.exe
+
+# Electron (do not track)
 Electron/
-Electron/dist/
 
 # Desktop client (C# WinForms) - do not track built runtime files
 Ticketing system Desktop App/
