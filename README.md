@@ -208,14 +208,21 @@ Desktop client (WinForms/CefSharp):
 ### Login Screen
 ![Login Screen](docs/media/ui/login-screen.png)
 
+### Register Screen
+![Register Screen](docs/media/ui/Register-screen.png)
+
 ### User Ticket Dashboard
 ![User Dashboard](docs/media/ui/user-dashboard.png)
 
 ### Admin Ticket Dashboard
 ![Admin Dashboard](docs/media/ui/admin-dashboard.png)
 
-### Ticket Workspace (Chat)
-![Ticket Workspace](docs/media/ui/ticket-workspace.png)
+### User Ticket Workspace (Chat)
+![Admin Ticket Workspace](docs/media/ui/user-workspace.png)
+
+### Admin Ticket Workspace (Chat)
+![Admin Ticket Workspace](docs/media/ui/admin-workspace.png)
+
 
 
 
