@@ -1,21 +1,21 @@
-# AdminReach
+# eTicketing
 
-AdminReach is an internal real-time support chat platform with a Node.js + Express + PostgreSQL backend and an Electron desktop client for staff.
+eTicketing is an internal real-time support and eTicketing platform with a Node.js + Express + MySQL backend, a vanilla HTML/CSS/JavaScript frontend, and a C# WinForms (CefSharp) desktop client for staff.
 
 It includes:
 - JWT-based authentication (admin and user roles)
 - Real-time messaging using Socket.io
-- Message history and read status
-- Admin inbox and reply workflow
-- Desktop client packaging with Electron
+- Ticket creation, assignment, status and priority tracking
+- Admin dashboard and workspace workflow
+- Desktop client packaging with C# WinForms (CefSharp) — supports older Windows (e.g., Windows 7)
 
 
 ## Project Structure
 
 ```text
 Backend/      -> API server, Socket.io, auth/chat routes, frontend static files
-Electron/     -> Desktop client shell and packaging config
-database/     -> PostgreSQL schema + seed data (setup.sql)
+Ticketing system Desktop App/ -> C# WinForms client (CefSharp) and runtime files
+database/     -> MySQL schema + seed data (setup.sql)
 *.txt         -> Deployment, maintenance, and dependency notes
 ```
 
@@ -25,15 +25,19 @@ Backend:
 - Node.js
 - Express
 - Socket.io
-- PostgreSQL (`pg`)
+- MySQL (`mysql2`)
 - JWT (`jsonwebtoken`)
 - `bcryptjs`
 - `dotenv`
 - `cors`
 
 Desktop:
-- Electron
-- electron-builder
+- C# WinForms (CefSharp, embedded Chromium)
+- Visual Studio Community / .NET Framework 4.6.2
+- CefSharp installed via NuGet (Visual Studio "Manage NuGet Packages")
+- Compatibility note: Built targeting .NET Framework 4.6.2 to support legacy
+  Windows versions (Windows 7); chosen for better compatibility on older OSes
+  where Electron may not run reliably.
 
 Frontend:
 - Vanilla HTML/CSS/JavaScript
@@ -44,10 +48,10 @@ Frontend:
 - Role-based access (`admin`, `user`)
 - Secure login and registration with hashed passwords
 - Protected API routes with JWT middleware
-- Real-time user-to-admin support messages
-- Admin replies delivered instantly to online users
-- Conversation history from PostgreSQL
-- Read-status update for admin workflows
+- Comprehensive Ticket Management (Create, Update, Filter, Assign)
+- Real-time ticket messaging and event broadcasting
+- Conversation and ticket history from MySQL
+- Unread status updates via Socket.io
 - Sender-only message deletion
 
 ## Architecture Overview
@@ -57,13 +61,13 @@ Runtime flow:
 2. Backend issues JWT token (24h expiry).
 3. Frontend/Electron stores token and sends it in API calls.
 4. Socket connects with token in handshake auth.
-5. Messages are persisted in PostgreSQL, then broadcast in real-time.
+5. Messages are persisted in MySQL, then broadcast in real-time.
 
 High-level components:
 - Express REST API for auth and chat operations
 - Socket.io layer for instant message delivery
-- PostgreSQL for users and messages
-- Electron shell for desktop distribution
+- MySQL for users and messages
+- CefSharp WinForms shell for desktop distribution (supports older Windows)
 
 ## API Summary
 
@@ -71,18 +75,23 @@ Auth:
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 
-Chat:
-- `GET /api/chat/users` (admin only)
-- `POST /api/chat/read/:userId` (admin only)
-- `GET /api/chat/messages/:userId` (authenticated)
-- `DELETE /api/chat/message/:messageId` (sender only)
+Tickets:
+- `GET /api/tickets` (Fetch all visible tickets)
+- `POST /api/tickets` (Create a new ticket)
+- `GET /api/tickets/:ticketId` (Get single ticket details)
+- `PATCH /api/tickets/:ticketId` (Update status/priority/assignment)
+
+Messages:
+- `GET /api/chat/tickets/:ticketId/messages` (Load ticket chat history)
+- `POST /api/chat/tickets/:ticketId/read` (Mark ticket as read)
+- `DELETE /api/chat/messages/:messageId` (Sender only)
 
 ## Quick Start (Development)
 
 ### 1. Database Setup
 
-1. Install PostgreSQL.
-2. Create a database (example: `adminreach`).
+1. Install MySQL 8.x.
+2. Create a database (example: `ticketing`).
 3. Run SQL from `database/setup.sql`.
 
 ### 2. Backend Setup
@@ -102,11 +111,11 @@ Then set your real values in `Backend/.env`:
 
 ```env
 PORT=5000
-DB_USER=postgres
+DB_USER=root
 DB_PASSWORD=your_password
 DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=adminreach
+DB_PORT=3306
+DB_NAME=ticketing
 JWT_SECRET=replace_with_a_strong_secret
 IP_ADDRESS=127.0.0.1
 ```
@@ -117,30 +126,18 @@ Run backend:
 npm start
 ```
 
-### 3. Electron Client Setup
+### 3. Desktop Client (CefSharp) — Quick Start
 
-```bash
-cd Electron
-npm install
-```
+End users:
+- Copy the provided WinForms client folder (`Ticketing system Desktop App`) to the client PC.
+- Open `config.txt` and set `TARGET_URL` to your server (example: `http://192.168.1.105:5000`).
+- Run the provided `.exe` to start the desktop app.
 
-Create `Electron/.env` from `Electron/.env.example`:
-
-```bash
-copy .env.example .env
-```
-
-Then set your real values in `Electron/.env`:
-
-```env
-SERVER_URL=http://127.0.0.1:5000
-```
-
-Run desktop app:
-
-```bash
-npm start
-```
+Developers (build from source):
+- Open the Visual Studio solution for the client in Visual Studio Community.
+- Use "Manage NuGet Packages" to restore/install `CefSharp` packages.
+- Ensure the project targets .NET Framework 4.6.2 (or compatible runtime).
+- Build the project in `Release` configuration and distribute the `bin\\Release` output.
 
 ## Production / Office Deployment
 
@@ -157,12 +154,12 @@ cd Backend
 npm run build
 ```
 
-Electron portable client:
+Desktop client (WinForms/CefSharp):
 
-```bash
-cd Electron
-npm run build
-```
+- Build from Visual Studio: open the client solution, restore NuGet packages, then build `Release`.
+- Pack the `bin\\Release` output for distribution to Windows workstations.
+
+- Note: The `Electron/` folder is legacy in this repo and retained for reference only; the recommended desktop delivery is the C# WinForms client above.
 
 ## Documentation Index
 
@@ -177,11 +174,14 @@ npm run build
 ### Login Screen
 ![Login Screen](docs/media/ui/login-screen.png)
 
-### User Chat Screen
-![User Chat Screen](docs/media/ui/user-chat-screen.png)
+### User Ticket Dashboard
+![User Dashboard](docs/media/ui/user-dashboard.png)
 
-### Admin Dashboard
+### Admin Ticket Dashboard
 ![Admin Dashboard](docs/media/ui/admin-dashboard.png)
+
+### Ticket Workspace (Chat)
+![Ticket Workspace](docs/media/ui/ticket-workspace.png)
 
 ## System Architecture Diagram
 

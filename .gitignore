@@ -3,7 +3,11 @@
 
 # Build artifacts
 Backend/*.exe
+Electron/
 Electron/dist/
+
+# Desktop client (C# WinForms) - do not track built runtime files
+Ticketing system Desktop App/
 
 # Environment files (secrets)
 Backend/.env

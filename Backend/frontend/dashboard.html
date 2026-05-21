@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support Request Dashboard — eTicketing</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="dashboard-page">
+  <div id="toast" class="toast"></div>
+
+  <!-- Header Area -->
+  <header class="page-header">
+    <div class="header-left">
+      <h1 id="pageTitle">Support Request</h1>
+    </div>
+    <div class="header-right">
+      <button id="newTicketBtn" class="btn-primary">+ Create Ticket</button>
+      <div class="user-identity">
+        <span id="identityName"></span>
+        <button onclick="logout()" class="logout-btn">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <!-- Navigation & View Controls -->
+    <div class="table-controls">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="globalSearch" placeholder="search ticket's subject" autocomplete="off">
+      </div>
+      
+      <div class="filters-wrap">
+        <button id="filterAssigned" class="btn-secondary admin-only-filter" style="border-radius:20px; display:none; padding:0.5rem 1rem;">Assigned by me</button>
+        <select id="filterCategory">
+          <option value="">All Types</option>
+          <option value="General">General</option>
+          <option value="Technical">Technical</option>
+          <option value="Billing">Billing</option>
+          <option value="Bug">Bug Report</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <select id="filterStatus">
+          <option value="">All Statuses</option>
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="On-Hold">On-Hold</option>
+          <option value="Closed">Closed</option>
+        </select>
+
+        <select id="filterPriority">
+          <option value="">All Priorities</option>
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+          <option value="Urgent">Urgent</option>
+        </select>
+
+        <select id="sortTickets">
+          <option value="last_activity">Sort: Last Activity</option>
+          <option value="newest">Sort: Newest</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="dashboardActions" class="dashboard-actions" style="display:none;">
+      <div class="dashboard-actions-group">
+        <button id="selectPageBtn" class="btn-secondary">Select Whole Page</button>
+        <button id="selectAllBtn" class="btn-secondary">Select All</button>
+      </div>
+      <div class="dashboard-actions-group">
+        <span id="selectionCount" class="selection-count">0 selected</span>
+        <button id="deleteSelectedBtn" class="btn-danger">Delete Selected</button>
+      </div>
+    </div>
+
+    <!-- Main Ticket Table -->
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="admin-only-th">Select</th>
+            <th>Ticket ID</th>
+            <th>Subject</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Type</th>
+            <th class="admin-only-th">Customer</th>
+            <th>Assigned Agent</th>
+            <th>Last Activity</th>
+            <th>Date Submitted</th>
+          </tr>
+        </thead>
+        <tbody id="ticketTableBody">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+      <div id="emptyState" class="table-empty-state" style="display:none;">
+        <div class="empty-icon">🎫</div>
+        <p>No tickets found.</p>
+      </div>
+    </div>
+
+    <div id="dashboardPagination" class="table-pagination" style="display:none;"></div>
+  </main>
+
+  <!-- Create Ticket Modal -->
+  <div id="createTicketModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+      <h2>Open a New Ticket</h2>
+      <form id="createTicketForm">
+        <div class="input-group">
+          <label for="ticketSubject">Subject <span class="danger-text">*</span></label>
+          <input type="text" id="ticketSubject" placeholder="Briefly describe your issue" required maxlength="200">
+        </div>
+        <div class="input-group">
+          <label for="ticketCategory">Category</label>
+          <select id="ticketCategory">
+            <option value="General">General</option>
+            <option value="Technical">Technical</option>
+            <option value="Billing">Billing</option>
+            <option value="Bug">Bug Report</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="cancelCreateBtn" class="btn-secondary">Cancel</button>
+          <button type="submit" class="btn-primary">Submit Ticket</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

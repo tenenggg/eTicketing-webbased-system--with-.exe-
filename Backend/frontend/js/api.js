@@ -1,96 +1,184 @@
 const API_BASE = '/api';                             // base URL for all API requests
 
 
-// Helper to get authorization headers with JWT from localStorage
+// ---------------------------------------------------------------
+// Auth helpers
+// ---------------------------------------------------------------
+
+// Returns JWT auth headers for every request
 function getAuthHeaders() {
-  const token = localStorage.getItem('token');        // retrieves the saved JWT token
+  const token = localStorage.getItem('token');
   return {
-    'Content-Type': 'application/json',               // specifies that we send/receive JSON
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}) // includes token if it exists
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
   };
 }
 
-
-
-
-
-// Global wrapper for the fetch API with automatic token handling and logout on expiry
-async function apiFetch(endpoint, options = {}) {
-  const response = await fetch(`${API_BASE}${endpoint}`, { // executes the actual network request
-    ...options,                                       // includes user-provided options (method, body, etc)
-    headers: {
-      ...getAuthHeaders(),                            // automatically adds security headers
-      ...options.headers                              // merges with any custom headers
-    }
-  });
-
-
-  const data = await response.json();                 // parses the backend response as JSON
-  
-  if (!response.ok) {                                 // checks if the request failed (4xx or 5xx)
-    if (response.status === 401 || response.status === 403) { // if the session has expired
-      localStorage.removeItem('token');               // clears local auth data
-      localStorage.removeItem('user');
-      window.location.href = 'login.html';            // kicks the user back to the login screen
-    }
-    throw new Error(data.message || 'API Error');     // bubbles up the error message
-  }
-  
-  return data;                                        // returns the successful response data
-}
-
-
-
-
-
-// Simple getter for current user info from localStorage
+// Returns the current user object from localStorage, or null
 function getUser() {
-  const user = localStorage.getItem('user');          // reads the user string
-  return user ? JSON.parse(user) : null;              // parses and returns user object, or null
+  const user = localStorage.getItem('user');
+  return user ? JSON.parse(user) : null;
 }
 
-
-
-
-
-// Helper to log out the user and clear the session
+// Clears session and redirects to login
 function logout() {
-  localStorage.removeItem('token');                   // removes secure token
-  localStorage.removeItem('user');                    // removes identity info
-  window.location.href = 'login.html';                // reloads the page to the login
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  window.location.href = 'login.html';
 }
 
 
+// ---------------------------------------------------------------
+// Core fetch wrapper — adds auth, handles 401/403 auto-logout
+// ---------------------------------------------------------------
+async function apiFetch(endpoint, options = {}) {
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers: {
+      ...getAuthHeaders(),
+      ...options.headers
+    }
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = 'login.html';
+    }
+    throw new Error(data.message || 'API Error');
+  }
+
+  return data;
+}
 
 
+// ---------------------------------------------------------------
+// Ticket API helpers
+// ---------------------------------------------------------------
 
-// Communicates with the backend to permanently delete a message
-async function deleteMessage(messageId) {
-  return await apiFetch(`/chat/message/${messageId}`, {
-    method: 'DELETE'                                  // uses the HTTP DELETE method
+// Creates a new ticket and returns the ticket object
+async function createTicket(subject, category = 'General') {
+  return await apiFetch('/tickets', {
+    method: 'POST',
+    body: JSON.stringify({ subject, category })
+  });
+}
+
+// Fetches the list of tickets visible to the current user
+// Admin: all tickets (optional ?status=Open&mine=true)
+// User:  only their own tickets
+async function fetchTickets(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  return await apiFetch(`/tickets${query ? '?' + query : ''}`);
+}
+
+// Fetches a single ticket by ID
+async function fetchTicket(ticketId) {
+  return await apiFetch(`/tickets/${ticketId}`);
+}
+
+// Admin: update ticket fields (status, priority, category, assigned_admin_id)
+async function updateTicket(ticketId, fields) {
+  return await apiFetch(`/tickets/${ticketId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(fields)
+  });
+}
+
+// User: update ticket subject only
+async function updateTicketSubject(ticketId, subject) {
+  return await apiFetch(`/tickets/${ticketId}/subject`, {
+    method: 'PATCH',
+    body: JSON.stringify({ subject })
+  });
+}
+
+// Admin: delete a ticket
+async function deleteTicket(ticketId) {
+  return await apiFetch(`/tickets/${ticketId}`, {
+    method: 'DELETE'
   });
 }
 
 
+// ---------------------------------------------------------------
+// Message API helpers
+// ---------------------------------------------------------------
+
+// Fetches the message thread for a ticket
+async function fetchMessages(ticketId) {
+  return await apiFetch(`/chat/tickets/${ticketId}/messages`);
+}
+
+// Deletes a specific message (sender only)
+async function deleteMessage(messageId) {
+  return await apiFetch(`/chat/messages/${messageId}`, {
+    method: 'DELETE'
+  });
+}
+
+// Admin: marks all messages in a ticket as read
+async function markTicketRead(ticketId) {
+  return await apiFetch(`/chat/tickets/${ticketId}/read`, {
+    method: 'POST'
+  });
+}
 
 
+// ---------------------------------------------------------------
+// Utility helpers
+// ---------------------------------------------------------------
 
-// Formats database timestamps into human-readable strings for the chat UI
+// Formats DB timestamps into human-readable strings
 function formatTimestamp(dateStr) {
-  const messageDate = new Date(dateStr);              // converts ISO string to Date object
-  if (isNaN(messageDate.getTime())) return '';        // returns empty if date is invalid
+  const messageDate = new Date(dateStr);
+  if (isNaN(messageDate.getTime())) return '';
 
+  const now = new Date();
+  const isToday = messageDate.toDateString() === now.toDateString();
 
-  const now = new Date();                             // current time for comparison
-  const isToday = messageDate.toDateString() === now.toDateString(); // checks if message was sent today
-
-
-  if (isToday) {                                      // if sent today, show time only
+  if (isToday) {
     return messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } else {                                            // if sent on a previous day
-    // Show "Month Day, Time" for older messages
-    return messageDate.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ', ' + 
+  } else {
+    return messageDate.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ', ' +
            messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 }
 
+// Maps a ticket status string to a CSS class name
+function statusClass(status) {
+  const map = {
+    'Open':        'status-open',
+    'In Progress': 'status-inprogress',
+    'On-Hold':     'status-onhold',
+    'Closed':      'status-closed',
+  };
+  return map[status] || 'status-open';
+}
+
+// Maps a ticket priority string to a CSS class name
+function priorityClass(priority) {
+  const map = {
+    'Low':    'priority-low',
+    'Medium': 'priority-medium',
+    'High':   'priority-high',
+    'Urgent': 'priority-urgent',
+  };
+  return map[priority] || 'priority-medium';
+}
+
+// Prevents XSS by escaping HTML special characters
+function escapeHTML(str) {
+  return String(str).replace(/[&<>'"]/g,
+    tag => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      "'": '&#39;',
+      '"': '&quot;'
+    }[tag])
+  );
+}

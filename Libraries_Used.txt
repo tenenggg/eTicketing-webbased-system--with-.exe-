@@ -1,4 +1,4 @@
-AdminReach - Libraries & Dependencies Explained
+eTicketing - Libraries & Dependencies Explained
 ================================================
 
 A detailed breakdown of every library used in this project, why it was chosen,
@@ -46,7 +46,7 @@ Why it's needed:
   this chat system simply would not work as a real-time application.
 
 Where it's used:
-  server.js (backend), socket.js and admin.js / chat.js (frontend via CDN)
+  server.js (backend), workspace.html and dashboard.html (frontend via CDN)
 
 Alternatives:
   Vanilla WebSocket API (built into browsers but requires more manual setup),
@@ -115,14 +115,14 @@ Alternatives:
 
 ----------------------------------------------------------------
 
-5. pg (node-postgres)
+5. mysql2
 ---------------------
 What it is:
-  pg is the official PostgreSQL client for Node.js. It allows the backend to
-  connect to and query the PostgreSQL database.
+  mysql2 is the official MySQL client for Node.js. It allows the backend to
+  connect to and query the MySQL database.
 
 Why it's needed:
-  Node.js cannot talk to a PostgreSQL database by default. The pg library provides
+  Node.js cannot talk to a MySQL database by default. The mysql2 library provides
   the connection pool and query methods needed to run SQL statements from
   JavaScript code.
 
@@ -132,7 +132,7 @@ Where it's used:
 
 Alternatives:
   Sequelize (ORM — writes SQL for you automatically), Prisma (modern ORM with
-  type safety), Knex (query builder). Raw pg was chosen to keep the project
+  type safety), Knex (query builder). Raw mysql2 was chosen to keep the project
   explicit and educational — every SQL query is visible and understandable rather
   than hidden behind an abstraction layer.
 
@@ -216,11 +216,41 @@ electron
   Electron is a framework that wraps a web application (HTML, CSS, JavaScript)
   inside a desktop window and packages it as an installable .exe file. The
   main.js file controls the window — its size, title, and which URL to load.
-  This allows AdminReach to be distributed as a desktop application while still
+  This allows eTicketing to be distributed as a desktop application while still
   running a standard web frontend internally.
 
+  Note: Electron is kept in the repo for compatibility and optional use, but it
+  is not used for production builds in the current deployment.
+
   Alternatives: NW.js (similar approach), Tauri (newer and lighter, uses Rust).
-  Electron was chosen because it is the most mature and widely supported option.
+  Electron was chosen historically for maturity and wide support.
+
+C# WinForms (CefSharp) — Current Desktop Wrapper
+  What it is:
+    A lightweight native Windows executable (.exe) built with C# WinForms that
+    embeds Chromium using CefSharp to render the existing web frontend inside
+    a native window.
+
+  Why it's used:
+    Builds a small native Windows client without packaging the full Electron
+    runtime. The target URL is configurable via config.txt, allowing the same
+    executable to point to different backend servers on the local network
+    without recompilation.
+
+  Tools used:
+    - Visual Studio Community — to build and compile the .exe
+    - .NET Framework 4.6.2 — runtime framework
+    - CefSharp 89.0.170 (WinForms) — Chromium browser engine
+    - NuGet — package manager to install CefSharp
+
+  Compatibility note:
+    Built to target an older .NET Framework (4.6.2) to maintain compatibility
+    with legacy Windows versions such as Windows 7. This native WinForms
+    wrapper improves compatibility on older systems where Electron may be
+    unsupported or has runtime limitations.
+
+  Alternatives:
+    Electron (kept for optional use), NW.js, Tauri, native WebView2.
 
 
 ================================================================
@@ -233,8 +263,8 @@ socket.io-client (via CDN)
   step or npm installation is required on the frontend. It provides the io()
   function used in socket.js to establish the WebSocket connection to the server.
 
-  All other frontend JavaScript files (api.js, auth.js, chat.js, admin.js,
-  register.js, socket.js) are written in plain vanilla JavaScript with no
+  All other frontend JavaScript files (api.js, auth.js, dashboard.js, workspace.js,
+  register.js) are written in plain vanilla JavaScript with no
   frameworks or bundlers. This keeps the frontend simple, fast, and easy to
   understand.
 

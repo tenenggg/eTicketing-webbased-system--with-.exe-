@@ -1,7 +1,7 @@
 ***********************************************************************
-                ADMINREACH: MAINTENANCE GUIDE
+                ETICKETING: MAINTENANCE GUIDE
 ***********************************************************************
-This guide is for anyone responsible for keeping the AdminReach system
+This guide is for anyone responsible for keeping the eTicketing system
 running. You do not need to be a programmer, just follow these steps.
 
 =======================================================================
@@ -22,7 +22,7 @@ Before you do anything, check if the server is already online.
 1. Open a terminal (Command Prompt or PowerShell).
 2. Type: pm2 status
 
-- If you see "adminreach" with a green "online" status:
+- If you see "eticketing" with a green "online" status:
   YOU ARE GOOD. The system is working in the background.
 
 - If you see "command not found" or the list is empty:
@@ -39,7 +39,7 @@ If someone edits the files (the code), the server needs to be
 --- SCENARIO A: PM2 IS INSTALLED (The Automatic Way) ---
 If you are using the office server, PM2 should already be there.
 1. Open terminal inside the Backend folder.
-2. Type: pm2 restart adminreach
+2. Type: pm2 restart eticketing
 3. Result: The server will blink off and back on with the new code.
 
 --- SCENARIO B: PM2 IS NOT INSTALLED (The Manual Way) ---
@@ -95,9 +95,9 @@ PART 5: TROUBLESHOOTING (Help! It is not working!)
 =======================================================================
 - "Port 5000 busy": Another process is using the port.
   Try: pm2 stop all
-  Then: pm2 restart adminreach
+  Then: pm2 restart eticketing
 
-- "Database Connection Failed": Make sure PostgreSQL service is running
+- "Database Connection Failed": Make sure MySQL service is running
   on the Master PC and Backend/.env DB values are correct.
 
 - "White Screen on App": The employee app cannot reach the server.

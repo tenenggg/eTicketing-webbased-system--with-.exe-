@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {           // ensures the s
 
 
   // Redirect Logic
-  // if already logged in, skip the registration page
+  // if already logged in, skip the registration page 
   const user = getUser();                                     // checks for existing session
   if (user) {                                                 // if user exists
     window.location.href = user.role === 'admin' ? 'admin.html' : 'chat.html'; // redirects based on role
@@ -54,4 +54,12 @@ document.addEventListener('DOMContentLoaded', () => {           // ensures the s
     }
   });
 });
+
+
+
+
+// tldr what happened here is :
+// 1. on page load (frontend), this file calls getUser() from api.js first; if a session already exists, it redirects by role instead of showing register form.
+// 2. if user stays on the form, frontend validates password === confirmPassword before calling apiFetch('/auth/register') from api.js.
+// 3. after backend response, frontend shows success/error message, resets the form on success, and then redirects to login.html after a short delay.
 

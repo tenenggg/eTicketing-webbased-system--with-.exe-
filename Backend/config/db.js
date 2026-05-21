@@ -1,17 +1,31 @@
-const { Pool } = require('pg');
+const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-const pool = new Pool({
+const pool = mysql.createPool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  port: Number(process.env.DB_PORT || 3306),
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });
 
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle pg client', err);
-  process.exit(-1);
-});
+const query = async (sql, params = []) => {
+  const [result] = await pool.execute(sql, params);
 
-module.exports = pool;
+  if (Array.isArray(result)) {
+    return { rows: result };
+  }
+
+  return {
+    rows: [],
+    ...result,
+  };
+};
+
+module.exports = {
+  query,
+  pool,
+};

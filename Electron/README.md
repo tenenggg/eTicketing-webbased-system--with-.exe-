@@ -1,6 +1,6 @@
-# Electron Client (AdminReach)
+# Electron Client (eTicketing)
 
-This folder contains the desktop wrapper for AdminReach.
+This folder contains the desktop wrapper for eTicketing.
 The Electron app loads the web client and points it to your backend server.
 
 ## Responsibilities
@@ -46,7 +46,7 @@ Output:
 ## Packaging Notes
 
 From `package.json`:
-- Product name: `AdminReach`
+- Product name: `eTicketing`
 - Target: Windows portable
 - Extra files: `.env`, `error.html`
 

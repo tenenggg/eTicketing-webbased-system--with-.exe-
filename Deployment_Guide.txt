@@ -1,4 +1,4 @@
-ADMINREACH: COMPLETE DEPLOYMENT GUIDE
+ETICKETING: COMPLETE DEPLOYMENT GUIDE
 ====================================
 
 Follow these steps to set up the system on your company server.
@@ -10,58 +10,58 @@ Follow these steps to set up the system on your company server.
 -------------------------------------------
 
 A. BASE SOFTWARE INSTALLATION:
-   1. Download and Install PostgreSQL:
-      - Go to: https://www.postgresql.org/download/windows/
-      - During install, it will ask for a "Password". Choose something you'll remember (example: 1234).
-      - After install, open "pgAdmin 4" (this is the database manager that comes with Postgres).
-      - QUICK TEST: Open Command Prompt and type: psql -U postgres
+   1. Download and Install MySQL 8:
+      - Go to: https://dev.mysql.com/downloads/installer/
+      - During install, choose a root password you will remember.
+      - After install, open MySQL Workbench (the database manager that comes with MySQL).
+      - QUICK TEST: Open Command Prompt and type: mysql -u root -p
         - If it asks for a password, your installation is successful.
-        - If it says "not recognized", PATH is not set up. (Optional fix: search for "Edit the system environment variables" in Windows Start, click Environment Variables, edit Path, and add C:\Program Files\PostgreSQL\16\bin).
-        - Note: If you do not want to fix terminal PATH, you can use pgAdmin only.
+        - If it says "not recognized", PATH is not set up. (Optional fix: add the MySQL Server bin folder to PATH, for example C:\Program Files\MySQL\MySQL Server 8.0\bin).
+        - Note: If you do not want to fix terminal PATH, you can use MySQL Workbench only.
 
    2. Node.js (Optional but Recommended):
       - Go to: https://nodejs.org/ (Download the LTS version).
       - Note: Your backend .exe can run without system Node.js, but Node.js is useful for troubleshooting and PM2 setup.
 
 B. DATABASE SETUP:
-   1. Open pgAdmin 4.
-   2. On the left, right-click Databases -> Create -> Database. Name it: adminreach
-   3. Right-click your new adminreach database -> Select Query Tool.
+   1. Open MySQL Workbench.
+   2. On the left, right-click Databases -> Create -> Database. Name it: ticketing
+   3. Right-click your new ticketing schema -> Open a new SQL tab.
    4. Open the setup.sql file from this project: database\setup.sql
    5. Copy ALL text from setup.sql.
-   6. Paste into the query editor and press Execute Query (or F5).
+   6. Paste into the query editor and execute the script.
    7. Your database tables are now ready.
 
 C. FILE DEPLOYMENT:
-   1. Create a folder named C:\AdminReach on the server.
-   2. Copy the entire Backend folder from this project into C:\AdminReach.
-      - Final location should be: C:\AdminReach\Backend
+   1. Create a folder named C:\eTicketing on the server.
+   2. Copy the entire Backend folder from this project into C:\eTicketing.
+      - Final location should be: C:\eTicketing\Backend
       - This supports BOTH deployment choices:
         a) Running server executable
         b) Running server.js with PM2
 
    6. CUSTOMIZE YOUR SERVER .ENV SETTINGS:
-      Open C:\AdminReach\Backend\.env in Notepad and update values for your server:
+      Open C:\eTicketing\Backend\.env in Notepad and update values for your server:
       - PORT=5000
-      - DB_USER=postgres
-      - DB_PASSWORD=XXXX (your PostgreSQL password)
+      - DB_USER=root
+      - DB_PASSWORD=XXXX (your MySQL root password)
       - DB_HOST=localhost
-      - DB_PORT=5432
-      - DB_NAME=adminreach (change if your database name is different)
+      - DB_PORT=3306
+      - DB_NAME=ticketing (change if your database name is different)
       - JWT_SECRET=change_this_to_a_strong_secret
       - IP_ADDRESS=YOUR_SERVER_IPV4 (example: 169.0.0.69)
 
    7. Start the backend using ONE of these:
-      - Option A (Executable): double-click your server executable inside C:\AdminReach\Backend
-      - Option B (PM2): use PM2 steps in Section 3 from C:\AdminReach\Backend
-      - If you see a PostgreSQL connected message or server running log, the server is live.
+      - Option A (Executable): double-click your server executable inside C:\eTicketing\Backend
+      - Option B (PM2): use PM2 steps in Section 3 from C:\eTicketing\Backend
+      - If you see a MySQL connected message or server running log, the server is live.
 
 D. FINAL FOLDER CHECKLIST (Very Important):
    Before starting the server, your folder should look like this:
 
-   C:\AdminReach\
+   C:\eTicketing\
      |- Backend\
-        |- adminreachServer.exe   (or your backend exe name, if using executable mode)
+        |- eticketingServer.exe   (or your backend exe name, if using executable mode)
         |- server.js              (if using PM2 mode)
         |- package.json
         |- .env
@@ -71,8 +71,8 @@ D. FINAL FOLDER CHECKLIST (Very Important):
            |- js\
            |- login.html
            |- register.html
-           |- chat.html
-           |- admin.html
+           |- dashboard.html
+           |- workspace.html
 
 E. FIREWALL (CRITICAL):
    - You must allow your backend port (default: 5000) in Windows Firewall on the server.
@@ -90,8 +90,28 @@ E. FIREWALL (CRITICAL):
    - Example: SERVER_URL=http://192.168.1.105:5000
    - Tip: On the Master Computer, run ipconfig in Command Prompt and use the IPv4 Address.
 4. Save and close .env.
-5. Double-click AdminReach.exe to run the app.
-6. Optional: Right-click AdminReach.exe -> Send to -> Desktop (create shortcut).
+5. Double-click eTicketing.exe to run the app.
+6. Optional: Right-click eTicketing.exe -> Send to -> Desktop (create shortcut).
+
+Alternative: C# WinForms (CefSharp) desktop client
+1. Copy the client folder containing the CefSharp-built executable to each employee computer.
+2. Open `config.txt` in that folder with Notepad.
+   - Set the target URL, for example: `TARGET_URL=http://192.168.1.105:5000`
+3. Save and close `config.txt`.
+4. Double-click the native `.exe` (for example: `eTicketing.exe`) to run the app.
+5. Optional: create a desktop shortcut for convenience.
+
+Building the CefSharp client (developer)
+- Open the Visual Studio solution/project for the client.
+- Ensure the target framework is set to .NET Framework 4.6.2 and restore NuGet packages.
+- Build the solution in `Release` mode and collect the produced `bin\Release` folder for distribution.
+
+Compatibility note:
+ - If you must support legacy systems (for example, Windows 7), build the
+    WinForms client targeting .NET Framework 4.6.2 (or an OS-appropriate
+    version) and test the produced executable on a representative machine or
+    VM. Electron-based clients may require newer OS/runtime versions and can
+    be less reliable on older Windows releases.
 
 
 
@@ -106,8 +126,8 @@ Use this if you run backend as Node.js script and want auto-restart and boot per
    pm2-startup install
 
 2. START THE SERVER (Go into Backend folder first):
-   cd C:\AdminReach\Backend
-   pm2 start server.js --name "adminreach"
+   cd C:\eTicketing\Backend
+   pm2 start server.js --name "eticketing"
    pm2 save (IMPORTANT, IF NOT IT WOULDNT BE THE SAME AFTER RESTARTING SERVER OR PC)
 
 3. USEFUL COMMANDS:
@@ -115,6 +135,8 @@ Use this if you run backend as Node.js script and want auto-restart and boot per
    - pm2 logs         (View runtime logs)
    - pm2 restart all  (Apply config or env changes)
    - pm2 stop all     (Stop all managed processes)
+   - pm2 delete [name/id]     (for deleting server)
+   - pm2 list         (more detailed than pm2 status)
 
 
 
@@ -122,5 +144,5 @@ NOTES
 ----- 
 - Project backend folder in this repo is named: Backend
 - SQL file location in this repo is: database\setup.sql
-- Client executable in current build is: AdminReach.exe
+- Client executable in current build is: eTicketing.exe
 - Client env key is: SERVER_URL

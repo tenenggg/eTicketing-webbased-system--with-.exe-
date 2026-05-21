@@ -1,13 +1,13 @@
-# Backend (AdminReach)
+# Backend (eTicketing)
 
-This folder contains the AdminReach API server, authentication logic, chat endpoints, Socket.io events, and static frontend hosting.
+This folder contains the eTicketing API server, authentication logic, chat endpoints, Socket.io events, and static frontend hosting.
 
 ## Responsibilities
 
 - Expose REST APIs for authentication and chat operations
 - Validate JWTs and enforce role-based access
 - Manage real-time communication through Socket.io
-- Persist users and messages in PostgreSQL
+- Persist users and messages in MySQL
 - Serve static frontend files from `Backend/frontend`
 
 ## Folder Map
@@ -34,11 +34,11 @@ Then set your real values in `Backend/.env`:
 
 ```env
 PORT=5000
-DB_USER=postgres
+DB_USER=root
 DB_PASSWORD=your_password
 DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=adminreach
+DB_PORT=3306
+DB_NAME=ticketing
 JWT_SECRET=replace_with_a_strong_secret
 IP_ADDRESS=127.0.0.1
 ```
@@ -61,7 +61,7 @@ npm start
 npm run build
 ```
 
-This uses `pkg` to generate a Windows executable (`adminreachServer.exe`).
+This uses `pkg` to generate a Windows executable (`eticketingServer.exe`).
 
 ## API Endpoints
 
@@ -70,17 +70,23 @@ This uses `pkg` to generate a Windows executable (`adminreachServer.exe`).
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 
-### Chat
+### Tickets
 
-- `GET /api/chat/users` (admin only)
-- `POST /api/chat/read/:userId` (admin only)
-- `GET /api/chat/messages/:userId` (authenticated)
-- `DELETE /api/chat/message/:messageId` (sender only)
+- `GET /api/tickets` (Fetch all visible tickets)
+- `POST /api/tickets` (Create a new ticket)
+- `GET /api/tickets/:ticketId` (Get single ticket details)
+- `PATCH /api/tickets/:ticketId` (Update status/priority/assignment)
+
+### Messages
+
+- `GET /api/chat/tickets/:ticketId/messages` (Load ticket chat history)
+- `POST /api/chat/tickets/:ticketId/read` (Mark ticket as read)
+- `DELETE /api/chat/messages/:messageId` (Sender only)
 
 ## Socket Events
 
 Inbound events:
-- `support_message` from user
+- `send_message` from user/admin
 - `admin_reply` from admin
 
 Outbound events:
@@ -98,6 +104,7 @@ Schema and seed data are in `database/setup.sql`.
 
 Main tables:
 - `users`
+- `tickets`
 - `messages`
 
 Seed users:

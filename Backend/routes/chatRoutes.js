@@ -1,25 +1,21 @@
-const express = require('express');                         // web framework for Node.js
-const router = express.Router();                            // router for handling chat-related API paths
-const chatController = require('../controllers/chatController'); // imports the chat logic handlers
-const { authenticateToken, authorizeRoles } = require('../middleware/authMiddleware'); // imports security middleware
+const express = require('express');
+const router = express.Router();
+const chatController = require('../controllers/chatController');
+const { authenticateToken } = require('../middleware/authMiddleware');
 
 
-// Fetches the list of all users (restricted to Admins only)
-router.get('/users', authenticateToken, authorizeRoles('admin'), chatController.getUsers); 
+// ============================================================
+// MESSAGE ROUTES (scoped to a ticket)
+// ============================================================
+
+// Get all messages for a ticket thread
+router.get('/tickets/:ticketId/messages', authenticateToken, chatController.getMessages);
+
+// Delete a specific message (sender only)
+router.delete('/messages/:messageId', authenticateToken, chatController.deleteMessage);
+
+// Mark messages in a ticket as read (both admins and users)
+router.post('/tickets/:ticketId/read', authenticateToken, chatController.markAsRead);
 
 
-// Marks messages from a specific user as read (restricted to Admins only)
-router.post('/read/:userId', authenticateToken, authorizeRoles('admin'), chatController.markAsRead);
-
-
-// Fetches message history for a specific conversation (Requires valid login)
-router.get('/messages/:userId', authenticateToken, chatController.getMessages);
-
-
-// Deletes a specific message (Only allowed for the message sender)
-router.delete('/message/:messageId', authenticateToken, chatController.deleteMessage);
-
-
-module.exports = router;                                    // exports the router for use in server.js
-
-
+module.exports = router;

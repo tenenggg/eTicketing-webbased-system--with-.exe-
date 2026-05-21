@@ -26,7 +26,7 @@ function createWindow() {
   const win = new BrowserWindow({                     // initializes a new browser window instance
     width: 1200,                                      // sets standard width
     height: 800,                                     // sets standard height
-    title: 'AdminReach Chat',                         // window title
+    title: 'eTicketing',                                // window title
     webPreferences: {
       nodeIntegration: false,                         // secure default: prevents node access in renderer
       contextIsolation: true,                         // secure default: isolates renderer from main process

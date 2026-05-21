@@ -1,0 +1,296 @@
+═══════════════════════════════════════════════════════════════
+                     BACKEND NOTES
+               Node.js / Express / Socket.io
+═══════════════════════════════════════════════════════════════
+
+
+───────────────────────────────────────────────────────────────
+ THE BIG PICTURE
+───────────────────────────────────────────────────────────────
+
+Frontend talks to backend through 2 channels simultaneously:
+
+  1. HTTP    → routes → controller → model   (ask and answer)
+  2. Socket  → handler → controller → model  (real-time, persistent)
+
+Both channels start when the user opens the app.
+Both run side by side, they don't block each other.
+
+
+───────────────────────────────────────────────────────────────
+ SERVER.JS
+───────────────────────────────────────────────────────────────
+
+The entry point of the entire backend. Its only job is to
+prepare and start the server.
+
+Responsibilities:
+  - Load environment variables (.env)
+  - Initialize express app and HTTP server
+  - Register global middleware (cors, json parsing, static files)
+  - Mount routes (attach route files to URL prefixes)
+  - Initialize socket.io
+  - Start listening on a port
+
+What does NOT belong in server.js:
+  - Business logic
+  - Database queries
+  - Socket event handling
+  - Authentication logic
+
+Think of it as: the thing that wires everything together,
+but does none of the actual work itself.
+
+
+───────────────────────────────────────────────────────────────
+ HTTP CHANNEL
+───────────────────────────────────────────────────────────────
+
+How it works:
+  - Frontend sends a request (fetch/axios) to a URL endpoint
+  - Server receives it, processes it, sends a response back
+  - Connection closes after the response
+
+Good for:
+  - Fetching data (GET)
+  - Submitting forms (POST)
+  - Updating records (PUT/PATCH)
+  - Deleting records (DELETE)
+  - Anything that is "ask once, get answer"
+
+Not good for:
+  - Pushing updates to frontend without being asked
+  - Real-time features (chat, notifications, live updates)
+
+
+───────────────────────────────────────────────────────────────
+ SOCKET CHANNEL
+───────────────────────────────────────────────────────────────
+
+How it works:
+  - Frontend connects ONCE and the connection stays open
+  - Both frontend and backend can send messages at any time
+  - Connection only closes when user leaves the page
+
+Good for:
+  - Live chat
+  - Real-time notifications
+  - Online presence tracking
+  - Anything that needs instant updates without refreshing
+
+Frontend connects:
+  const socket = io('http://localhost:5000', {
+    auth: { token: 'JWT_here' }
+  });
+
+Frontend sends:
+  socket.emit('send_message', { ticketId: 5, content: 'Hello!' });
+
+Frontend listens:
+  socket.on('receive_message', (message) => {
+    // update UI instantly
+  });
+
+Key Socket concepts:
+  - emit    → send an event
+  - on      → listen for an event
+  - room    → a named group (e.g. 'admins') — emit to everyone in it
+  - io.to() → send to a specific room or socket ID (includes sender)
+  - socket.to() → send to a room or socket ID (excludes sender)
+
+
+───────────────────────────────────────────────────────────────
+ ROUTES
+───────────────────────────────────────────────────────────────
+
+The HTTP equivalent of a handler. Lists out URL endpoints and
+points each one to the correct controller function.
+
+Does NOT contain logic. Just wiring.
+
+Example:
+  router.get('/tickets/:ticketId/messages', authenticateToken, chatController.getMessages);
+
+  This says:
+  - When someone hits GET /tickets/:ticketId/messages
+  - First run authenticateToken middleware
+  - Then run chatController.getMessages
+
+Routes are mounted in server.js:
+  app.use('/api/chat', chatRoutes);
+
+So the full URL becomes: /api/chat/tickets/:ticketId/messages
+
+
+───────────────────────────────────────────────────────────────
+ HANDLER (Socket equivalent of Routes)
+───────────────────────────────────────────────────────────────
+
+Same concept as routes, but for socket events instead of HTTP.
+
+Responsibilities:
+  - Apply socket auth middleware
+  - Listen for socket events (on)
+  - Point each event to the correct controller function
+  - Pass context (socket, io, onlineUsers) to the controller
+
+Does NOT contain business logic. Just wiring.
+
+Example:
+  socket.on('send_message', (data) =>
+    handleSendMessage(socket, io, data)
+  );
+
+Comparison:
+  HTTP:   routes file     → points to controller
+  Socket: handler file    → points to controller
+
+
+───────────────────────────────────────────────────────────────
+ CONTROLLER
+───────────────────────────────────────────────────────────────
+
+Where the actual work happens.
+
+Responsibilities:
+  - Calls model functions (DB queries)
+  - Contains the business logic
+  - Handles errors (try/catch)
+  - Shapes and sends the response (JSON, status codes)
+  - For sockets: emits back to the right rooms/users
+
+This is the brain. Routes and handlers just point to it,
+models just serve it. The controller decides what to do.
+
+Example flow:
+  Controller receives request
+    → calls model to get data
+    → checks conditions / applies logic
+    → sends response back to frontend
+
+
+───────────────────────────────────────────────────────────────
+ MODEL
+───────────────────────────────────────────────────────────────
+
+The only layer that talks to the database.
+
+Responsibilities:
+  - Write SQL queries
+  - Execute them via the DB connection pool
+  - Return raw results to the controller
+
+Contains NO logic, NO conditions, NO responses.
+Just query in, data out.
+
+Example:
+  const saveMessage = async (senderId, receiverId, content) => {
+    const result = await pool.query(
+      'INSERT INTO messages (sender_id, receiver_id, content)
+       VALUES ($1, $2, $3) RETURNING id, created_at',
+      [senderId, receiverId, content]
+    );
+    return result.rows[0];
+  };
+
+
+───────────────────────────────────────────────────────────────
+ MIDDLEWARE
+───────────────────────────────────────────────────────────────
+
+Functions that run BEFORE the controller. They intercept the
+request, do something, then either pass it forward or block it.
+
+Technically middleware is also a "handler" — it receives and
+routes, just with extra gatekeeping.
+
+Common uses:
+  - Authentication (check if user is logged in)
+  - Authorization (check if user has the right role)
+  - Parsing (convert raw request body to JSON)
+  - Logging (record every request)
+  - CORS (allow/block cross-origin requests)
+
+Example:
+  const authenticateToken = (req, res, next) => {
+    // verify JWT
+    // if valid: req.user = decoded; next();
+    // if invalid: res.status(403).json(...)
+  };
+
+next() means "continue to the next middleware or controller."
+Without calling next(), the request stops there.
+
+For sockets, middleware works the same way:
+  io.use((socket, next) => {
+    // verify token before allowing connection
+  });
+
+
+───────────────────────────────────────────────────────────────
+ RESPONSIBILITY SUMMARY
+───────────────────────────────────────────────────────────────
+
+  Layer          Knows about         Does NOT touch
+  ─────────────────────────────────────────────────────────
+  server.js      everything          no logic, no queries
+  routes         URLs + controllers  no logic, no queries
+  handler        events + controllers no logic, no queries
+  middleware     req/res only        no queries
+  controller     models + responses  no raw SQL
+  model          database only       no logic, no responses
+
+───────────────────────────────────────────────────────────────
+ FULL REQUEST FLOW (HTTP example)
+───────────────────────────────────────────────────────────────
+
+  Frontend: fetch('/api/chat/tickets/5/messages')
+       │
+       ▼
+  server.js        → sees /api/chat, forwards to chatRoutes
+       │
+       ▼
+  chatRoutes.js    → matches GET /tickets/:ticketId/messages
+                   → runs authenticateToken middleware
+                   → calls chatController.getMessages
+       │
+       ▼
+  chatController   → reads ticketId from req.params
+                   → calls chatModel.getMessagesByTicket(ticketId)
+                   → sends res.json(messages)
+       │
+       ▼
+  chatModel        → runs SQL query
+                   → returns rows to controller
+       │
+       ▼
+  Frontend receives the JSON response
+
+
+───────────────────────────────────────────────────────────────
+ FULL EVENT FLOW (Socket example)
+───────────────────────────────────────────────────────────────
+
+  Frontend: socket.emit('send_message', { ticketId: 5, content: 'Hi' })
+       │
+       ▼
+  socketHandler    → socketAuthMiddleware checks JWT
+                   → socket.on('send_message') fires
+                   → calls socketController.handleSendMessage
+       │
+       ▼
+  socketController → calls chatModels.saveMessage()
+                   → constructs message object
+                   → io.to('ticket_5').emit('receive_message', ...)
+                   → socket.emit('message_sent', ...)
+       │
+       ▼
+  chatModel        → runs INSERT query
+                   → returns saved message to controller
+       │
+       ▼
+  Admin frontend receives 'receive_message' event instantly
+  User frontend receives 'message_sent' confirmation
+
+
+═══════════════════════════════════════════════════════════════
