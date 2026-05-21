@@ -176,6 +176,14 @@ Desktop client (WinForms/CefSharp):
 
 ![System Architecture](docs/media/architecture/system-architecture-v1.png)
 
+## Use-Case Diagram
+
+![Use Case Diagram](docs/media/use-cases/use-case-overview.png)
+
+## ERD Diagram
+
+![ERD Diagram](docs/media/architecture/ERD.png)
+
 ## Authentication Admin Flowchart 
 
 ![Flowchart](docs/media/flowcharts/adminauth-flowchart.png)
@@ -184,21 +192,15 @@ Desktop client (WinForms/CefSharp):
 
 ![Flowchart](docs/media/flowcharts/userauth-flowchart.png)
 
-## Admin Chat Flow Flowchart
+## Admin Ticket Chat Flow Flowchart
 
 ![Flowchart](docs/media/flowcharts/adminchat-flowchart.png)
 
-## User Chat Flow Flowchart
+## User Ticket Chat Flow Flowchart
 
 ![Flowchart](docs/media/flowcharts/userchat-flowchart.png)
 
-## Use-Case Diagram
 
-![Use Case Diagram](docs/media/use-cases/use-case-overview.png)
-
-## ERD Diagram
-
-![ERD Diagram](docs/media/architecture/ERD.png)
 
 
 
