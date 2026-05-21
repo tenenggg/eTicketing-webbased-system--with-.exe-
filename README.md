@@ -167,21 +167,10 @@ Desktop client (WinForms/CefSharp):
 - `Electron/README.md` -> Desktop app behavior and packaging
 - `docs/README.media.md` -> How to add UI screenshots and diagrams on GitHub
 
-## UI Screenshots
 
-> Replace filenames below with your actual image names after upload.
 
-### Login Screen
-![Login Screen](docs/media/ui/login-screen.png)
+## System Design
 
-### User Ticket Dashboard
-![User Dashboard](docs/media/ui/user-dashboard.png)
-
-### Admin Ticket Dashboard
-![Admin Dashboard](docs/media/ui/admin-dashboard.png)
-
-### Ticket Workspace (Chat)
-![Ticket Workspace](docs/media/ui/ticket-workspace.png)
 
 ## System Architecture Diagram
 
@@ -210,5 +199,23 @@ Desktop client (WinForms/CefSharp):
 ## ERD Diagram
 
 ![ERD Diagram](docs/media/architecture/ERD.png)
+
+
+
+## UI Screenshots
+
+
+### Login Screen
+![Login Screen](docs/media/ui/login-screen.png)
+
+### User Ticket Dashboard
+![User Dashboard](docs/media/ui/user-dashboard.png)
+
+### Admin Ticket Dashboard
+![Admin Dashboard](docs/media/ui/admin-dashboard.png)
+
+### Ticket Workspace (Chat)
+![Ticket Workspace](docs/media/ui/ticket-workspace.png)
+
 
 
