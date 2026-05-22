@@ -225,6 +225,9 @@ Desktop client (WinForms/CefSharp):
 ### Admin Ticket Workspace (Chat)
 ![Admin Ticket Workspace](docs/media/ui/admin-workspace.png)
 
+### Youtube Link
+[Watch Demo](https://youtu.be/vaC4OYSJ43U?si=Wr0Qr1lJ8H5GFImx)
+
 
 
 
